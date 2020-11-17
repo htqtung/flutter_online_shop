@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../widgets/products_grid.dart';
+import '../widgets/badge.dart';
+import '../providers/cart.dart';
+import '../screens/cart_screen.dart';
 
 enum FilterOptions {
   Favorites,
@@ -22,6 +26,23 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
         title: Text('Products'),
         centerTitle: true,
         actions: <Widget>[
+          Consumer<Cart>(
+            // 'child' argument of Consumer will be passed
+            // automatically to the builder's childWidget
+            // so the child widget is not re-rendered when the builder func runs
+            builder: (_, cart, childWidget) => Badge(
+              child: childWidget,
+              value: cart.itemCount.toString(),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.shopping_cart,
+              ),
+              onPressed: () {
+                Navigator.of(context).pushNamed(CartScreen.routeName);
+              },
+            ),
+          ),
           PopupMenuButton(
             itemBuilder: (_) => [
               PopupMenuItem(
@@ -45,7 +66,7 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
                 }
               });
             },
-          )
+          ),
         ],
       ),
       body: ProductsGrid(_showOnlyFavorites),
