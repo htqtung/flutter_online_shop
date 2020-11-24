@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../screens/orders_screen.dart';
+import '../screens/user_products_screen.dart';
 
 class SideDrawer extends StatelessWidget {
   Widget buildDrawerMenuItem(String title, IconData icon, Function tapHandler) {
@@ -41,7 +42,16 @@ class SideDrawer extends StatelessWidget {
             leading: Icon(Icons.fact_check),
             title: Text('Orders', style: TextStyle(fontSize: 18)),
             onTap: () {
-              Navigator.of(context).pushReplacementNamed(OrdersScreen.routeName);
+              Navigator.of(context)
+                  .pushReplacementNamed(OrdersScreen.routeName);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('Manage products', style: TextStyle(fontSize: 18)),
+            onTap: () {
+              Navigator.of(context)
+                  .pushReplacementNamed(UserProductsScreen.routeName);
             },
           ),
         ],
