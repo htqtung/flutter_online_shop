@@ -42,6 +42,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   void _updateImageUrl() {
     if (!_imageUrlFocusNode.hasFocus) {
+      // Simplified URL validation
+      if ((!_imageUrlController.text.startsWith('http') &&
+              !_imageUrlController.text.startsWith('https')) ||
+          (!_imageUrlController.text.endsWith('.png') &&
+              !_imageUrlController.text.endsWith('jpg') &&
+              !_imageUrlController.text.endsWith('.jpeg'))) return;
       setState(() {});
     }
   }
@@ -99,6 +105,18 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 onFieldSubmitted: (_) {
                   FocusScope.of(context).requestFocus(_descriptionFocusNode);
                 },
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'Please enter a price.';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number.';
+                  }
+                  if (double.parse(value) <= 0) {
+                    return 'Please enter a number greater than 0';
+                  }
+                  return null;
+                },
                 keyboardType: TextInputType.number,
                 focusNode: _priceFocusNode,
                 onSaved: (value) {
@@ -109,12 +127,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     imageUrl: _editedProduct.imageUrl,
                     id: null,
                   );
-                },
-                validator: (value) {
-                  if (value.isEmpty)
-                    return 'Title cannot be blank';
-                  else
-                    return null;
                 },
               ),
               TextFormField(
@@ -133,8 +145,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 },
                 validator: (value) {
                   if (value.isEmpty)
-                    return 'Title cannot be blank';
-                  else
+                    return 'Please enter a description.';
+                  else if (value.length > 255) {
+                    return 'Description should be shorter than this.';
+                  } else
                     return null;
                 },
               ),
