@@ -3,7 +3,7 @@ import 'package:flutter_online_shop/screens/orders_screen.dart';
 import 'package:provider/provider.dart';
 
 import './screens/product_detail.dart';
-import './screens/products_overview.dart';
+import './screens/products_overview_screen.dart';
 import './providers/products.dart';
 import './providers/cart.dart';
 import './providers/orders.dart';
