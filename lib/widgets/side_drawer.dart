@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_online_shop/providers/auth.dart';
+import 'package:provider/provider.dart';
 
 import '../screens/orders_screen.dart';
 import '../screens/user_products_screen.dart';
@@ -30,7 +32,6 @@ class SideDrawer extends StatelessWidget {
             title: Text('Flutter Shop'),
             automaticallyImplyLeading: false,
           ),
-          Divider(),
           ListTile(
             leading: Icon(Icons.shopping_bag),
             title: Text('Shop', style: TextStyle(fontSize: 18)),
@@ -38,6 +39,7 @@ class SideDrawer extends StatelessWidget {
               Navigator.of(context).pushReplacementNamed('/');
             },
           ),
+          Divider(),
           ListTile(
             leading: Icon(Icons.fact_check),
             title: Text('Orders', style: TextStyle(fontSize: 18)),
@@ -46,6 +48,7 @@ class SideDrawer extends StatelessWidget {
                   .pushReplacementNamed(OrdersScreen.routeName);
             },
           ),
+          Divider(),
           ListTile(
             leading: Icon(Icons.edit),
             title: Text('Manage products', style: TextStyle(fontSize: 18)),
@@ -54,6 +57,15 @@ class SideDrawer extends StatelessWidget {
                   .pushReplacementNamed(UserProductsScreen.routeName);
             },
           ),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.exit_to_app),
+            title: Text('Sign out', style: TextStyle(fontSize: 18)),
+            onTap: () {
+              Provider.of<Auth>(context, listen: false).signOut();
+            },
+          ),
+          Divider(),
         ],
       ),
     );

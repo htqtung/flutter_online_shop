@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +9,7 @@ class Auth with ChangeNotifier {
   String _token;
   DateTime _tokenExpDate;
   String _userId;
+  Timer _authTimer;
 
   bool get isAuthenticated {
     return token != null;
@@ -50,6 +52,7 @@ class Auth with ChangeNotifier {
           responseData['expiresIn'],
         ),
       ));
+      _autoSignOut();
       notifyListeners();
     } catch (error) {
       throw error;
@@ -64,5 +67,26 @@ class Auth with ChangeNotifier {
 
   Future<void> signIn(String email, String password) async {
     return _authenticate(email, password, 'signInWithPassword');
+  }
+
+  void signOut() {
+    _token = null;
+    _userId = null;
+    _tokenExpDate = null;
+    if (_authTimer != null) {
+      _authTimer.cancel();
+      _authTimer = null;
+    }
+    notifyListeners();
+  }
+
+  void _autoSignOut() {
+    if (_authTimer != null) {
+      _authTimer.cancel();
+    }
+    final timeTillTokenExpires =
+        _tokenExpDate.difference(DateTime.now()).inSeconds;
+
+    _authTimer = Timer(Duration(seconds: timeTillTokenExpires), signOut);
   }
 }
