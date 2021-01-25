@@ -8,6 +8,12 @@ import './product.dart';
 class Products with ChangeNotifier {
   List<Product> _items = [];
 
+  final String authToken;
+
+  final String userId;
+
+  Products(this.authToken, this.userId, this._items);
+
   List<Product> get items {
     return [..._items];
   }
@@ -20,13 +26,19 @@ class Products with ChangeNotifier {
     return _items.firstWhere((product) => product.id == id);
   }
 
-  Future<void> fetchAndSetProducts() async {
-    const url =
-        'https://flutter-resell-shop-default-rtdb.europe-west1.firebasedatabase.app/products.json';
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
+    final additionalParams =
+        filterByUser ? '&orderBy="creatorId"&equalTo="$userId"' : '';
+    var url =
+        'https://flutter-resell-shop-default-rtdb.europe-west1.firebasedatabase.app/products.json?auth=$authToken$additionalParams';
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       if (extractedData == null) return;
+      url =
+          'https://flutter-resell-shop-default-rtdb.europe-west1.firebasedatabase.app/userFavorites/$userId.json?auth=$authToken';
+      final userFavoritesResponse = await http.get(url);
+      final userFavorites = json.decode(userFavoritesResponse.body);
       final List<Product> loadedProducts = [];
       extractedData.forEach((prodId, prodData) {
         loadedProducts.add(Product(
@@ -35,7 +47,9 @@ class Products with ChangeNotifier {
           description: prodData['description'],
           price: prodData['price'],
           imageUrl: prodData['imageUrl'],
-          isFavorite: prodData['isFavorite'],
+          // '??' means if the value is null, it will return the fallback value instead of the value itself
+          isFavorite:
+              userFavorites == null ? false : userFavorites[prodId] ?? false,
         ));
       });
       _items = loadedProducts;
@@ -48,8 +62,8 @@ class Products with ChangeNotifier {
   Future<void> addProduct(Product product) async {
     // Firebase's thing: add /products.json at the end as a way to create
     // a folder in the database
-    const url =
-        'https://flutter-resell-shop-default-rtdb.europe-west1.firebasedatabase.app/products.json';
+    final url =
+        'https://flutter-resell-shop-default-rtdb.europe-west1.firebasedatabase.app/products.json?auth=$authToken';
     try {
       final response = await http.post(
         url,
@@ -58,7 +72,7 @@ class Products with ChangeNotifier {
           'description': product.description,
           'imageUrl': product.imageUrl,
           'price': product.price,
-          'isFavorite': product.isFavorite,
+          'creatorId': userId,
         }),
       );
       final newProduct = Product(
@@ -79,7 +93,7 @@ class Products with ChangeNotifier {
     final prodIndex = _items.indexWhere((item) => item.id == product.id);
     if (prodIndex >= 0) {
       final url =
-          'https://flutter-resell-shop-default-rtdb.europe-west1.firebasedatabase.app/products/${product.id}.json';
+          'https://flutter-resell-shop-default-rtdb.europe-west1.firebasedatabase.app/products/${product.id}.json?auth=$authToken';
       await http.patch(url,
           body: json.encode({
             'title': product.title,
@@ -96,7 +110,7 @@ class Products with ChangeNotifier {
 
   Future<void> deleteProduct(String id) async {
     final url =
-        'https://flutter-resell-shop-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json';
+        'https://flutter-resell-shop-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json?auth=$authToken';
     final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
     var existingProduct = _items[existingProductIndex];
 

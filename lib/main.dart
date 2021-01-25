@@ -28,14 +28,27 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (ctx) => Auth(),
         ),
-        ChangeNotifierProvider(
-          create: (ctx) => Products(),
+        // Make sure Auth provider is written before other providers
+        // that use the Auth provider
+        // so that the following will rebuild when Auth provider changes
+        ChangeNotifierProxyProvider<Auth, Products>(
+          update: (ctx, auth, prevProducts) => Products(
+            auth.token,
+            auth.userId,
+            prevProducts == null ? [] : prevProducts.items,
+          ),
+          create: null,
         ),
         ChangeNotifierProvider(
           create: (ctx) => Cart(),
         ),
-        ChangeNotifierProvider(
-          create: (ctx) => Orders(),
+        ChangeNotifierProxyProvider<Auth, Orders>(
+          update: (ctx, auth, prevOrders) => Orders(
+            auth.token,
+            auth.userId,
+            prevOrders == null ? [] : prevOrders.orders,
+          ),
+          create: null,
         ),
       ],
       // MaterialApp will be rebuilt whenever auth changes
