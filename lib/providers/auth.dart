@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import '../models/http_exception.dart';
@@ -54,6 +55,13 @@ class Auth with ChangeNotifier {
       ));
       _autoSignOut();
       notifyListeners();
+      final prefs = await SharedPreferences.getInstance();
+      final userData = json.encode({
+        'token': _token,
+        'userId': _userId,
+        'expiryDate': _tokenExpDate.toIso8601String(),
+      });
+      prefs.setString('userData', userData);
     } catch (error) {
       throw error;
     }
@@ -69,7 +77,37 @@ class Auth with ChangeNotifier {
     return _authenticate(email, password, 'signInWithPassword');
   }
 
-  void signOut() {
+  Future<bool> tryAutoSignIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey('userData')) {
+      return false;
+    }
+
+    final extractedUserData =
+        json.decode(prefs.getString('userData')) as Map<String, Object>;
+    final expiryDate = DateTime.parse(extractedUserData['expiryDate']);
+    if (DateTime.now().isAfter(expiryDate)) {
+      return false;
+    }
+    // After all the checks, the token is valid and can be used
+    _token = extractedUserData['token'];
+    _userId = extractedUserData['userId'];
+    _tokenExpDate = expiryDate;
+    _autoSignOut();
+    notifyListeners();
+    return true;
+  }
+
+  Future<void> clearLocalStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    // * remove a certain key - value pair
+    // prefs.remove('userData');
+
+    // * clear all data in the local storage
+    prefs.clear();
+  }
+
+  void signOut() async {
     _token = null;
     _userId = null;
     _tokenExpDate = null;
@@ -78,6 +116,7 @@ class Auth with ChangeNotifier {
       _authTimer = null;
     }
     notifyListeners();
+    clearLocalStorage();
   }
 
   void _autoSignOut() {

@@ -62,6 +62,7 @@ class SideDrawer extends StatelessWidget {
             leading: Icon(Icons.exit_to_app),
             title: Text('Sign out', style: TextStyle(fontSize: 18)),
             onTap: () {
+              // Navigator.of(context).pushReplacementNamed('/');
               Provider.of<Auth>(context, listen: false).signOut();
             },
           ),
