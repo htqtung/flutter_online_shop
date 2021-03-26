@@ -14,7 +14,8 @@ class OrderItem extends StatefulWidget {
   _OrderItemState createState() => _OrderItemState();
 }
 
-class _OrderItemState extends State<OrderItem> {
+class _OrderItemState extends State<OrderItem>
+    with SingleTickerProviderStateMixin {
   var _expanded = false;
 
   Widget itemRowBuilder(title, description) {
@@ -41,34 +42,40 @@ class _OrderItemState extends State<OrderItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.all(8),
-      elevation: 5,
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            title: Text(
-              'Order ${widget.order.id}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 300),
+      height:
+          _expanded ? min(widget.order.products.length * 24.0 + 100, 200) : 100,
+      child: Card(
+        margin: EdgeInsets.all(8),
+        elevation: 5,
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              title: Text(
+                'Order ${widget.order.id}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                DateFormat('dd-MM-yyyy hh:mm').format(widget.order.dateTime),
+              ),
+              trailing: IconButton(
+                icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+                onPressed: () {
+                  setState(() {
+                    _expanded = !_expanded;
+                  });
+                },
               ),
             ),
-            subtitle: Text(
-              DateFormat('dd-MM-yyyy hh:mm').format(widget.order.dateTime),
-            ),
-            trailing: IconButton(
-              icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
-              onPressed: () {
-                setState(() {
-                  _expanded = !_expanded;
-                });
-              },
-            ),
-          ),
-          if (_expanded)
-            Container(
+            AnimatedContainer(
+              duration: Duration(milliseconds: 300),
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              height: min(widget.order.products.length * 24.0, 200),
+              height: _expanded
+                  ? min(widget.order.products.length * 24.0 + 10, 200)
+                  : 0,
               child: ListView(
                 children: widget.order.products
                     .map(
@@ -78,13 +85,8 @@ class _OrderItemState extends State<OrderItem> {
                     .toList(),
               ),
             ),
-          if (_expanded)
-            Container(
-              padding: EdgeInsets.only(left: 16, right: 16, top: 4),
-              height: 36, // 20 + 16
-              child: itemRowBuilder('Sum', '\$${widget.order.amount}'),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
